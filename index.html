@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 增加 referrer meta 标签，防止 Pinterest 图片因防盗链机制导致加载失败 (403 Forbidden) -->
+    <meta name="referrer" content="no-referrer">
     <title>Art Spa Bodyworks | Professional Massage Therapy</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
@@ -71,19 +73,20 @@
         .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
 
-        /* Hero Section */
+        /* Hero Section 修复了 z-index 层叠上下文问题 */
         #home {
             height: 100vh; min-height: 600px; display: flex; align-items: center; justify-content: center; text-align: center;
             position: relative; overflow: hidden; padding: 0 5%;
+            z-index: 1; /* 强制建立新的层叠上下文，避免被 body 背景覆盖 */
         }
-        .hero-carousel { position: absolute; top: 0; left: 0; width: 100%; height: 120%; z-index: -2; }
+        .hero-carousel { position: absolute; top: 0; left: 0; width: 100%; height: 120%; z-index: 1; }
         .hero-carousel img {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
             opacity: 0; transition: opacity 1.5s ease-in-out; will-change: transform;
         }
         .hero-carousel img.active { opacity: 1; }
-        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6)); z-index: -1; }
-        .hero-content { color: #fff; max-width: 800px; z-index: 1; padding-top: 60px; will-change: transform; }
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6)); z-index: 2; }
+        .hero-content { color: #fff; max-width: 800px; position: relative; z-index: 3; padding-top: 60px; will-change: transform; }
         .hero-content h1 { color: #fff; font-size: 4rem; margin-bottom: 20px; text-shadow: 2px 2px 8px rgba(0,0,0,0.4); line-height: 1.1; }
         .hero-content p { font-size: 1.2rem; margin-bottom: 35px; font-weight: 300; text-shadow: 1px 1px 4px rgba(0,0,0,0.4); }
 
@@ -224,10 +227,8 @@
             .map-container { height: 300px; min-height: 300px; }
             .price-list li { font-size: 0.95rem; }
             .price-list li span:last-child { font-size: 1rem; }
-            .btn { padding: 14px 28px; width: 100%; text-align: center; } /* Full width buttons on tiny screens */
+            .btn { padding: 14px 28px; width: 100%; text-align: center; }
             .hero-content .btn { width: auto; padding: 14px 32px; }
-            
-            /* Fix Marquee on tiny screens */
             .review-card { width: 280px; padding: 20px; }
         }
     </style>
@@ -474,12 +475,12 @@
                     const scrollY = window.scrollY;
                     const isMobile = window.innerWidth <= 768;
                     
-                    // Backgrounds moving slower (applied on all devices but constrained)
+                    // Backgrounds moving slower
                     document.querySelectorAll('.prlx-bg').forEach(el => {
                         el.style.transform = `translateY(${scrollY * 0.25}px)`;
                     });
                     
-                    // Text parallax (disabled or reduced on mobile for layout stability)
+                    // Text parallax
                     if (!isMobile) {
                         document.querySelectorAll('.prlx-text').forEach(el => {
                             const speed = el.dataset.speed || 0.15;
@@ -487,7 +488,6 @@
                         });
 
                         document.querySelectorAll('.prlx-img').forEach(el => {
-                            // Only parallax image inside its container bounds to prevent overflow
                             const rect = el.parentElement.getBoundingClientRect();
                             if (rect.top < window.innerHeight && rect.bottom > 0) {
                                 const offset = (window.innerHeight - rect.top) * 0.1;
@@ -495,7 +495,6 @@
                             }
                         });
                     } else {
-                        // Reset transforms on mobile
                         document.querySelectorAll('.prlx-text, .prlx-img').forEach(el => {
                             el.style.transform = 'none';
                         });
@@ -589,7 +588,7 @@
         const row2Reviews = reviews.slice(half);
 
         let row1HTML = row1Reviews.map(createReviewCard).join('');
-        track1.innerHTML = row1HTML + row1HTML + row1HTML + row1HTML; // Quadruple to ensure continuous loop on wide/mobile screens
+        track1.innerHTML = row1HTML + row1HTML + row1HTML + row1HTML; // Quadruple to ensure continuous loop
 
         let row2HTML = row2Reviews.map(createReviewCard).join('');
         track2.innerHTML = row2HTML + row2HTML + row2HTML + row2HTML;
